@@ -2,13 +2,16 @@
 # CS 510 - Adventures in NLP
 # Steam Sentiment Analysis
 #
-# 
+# This file reads and preprocesses reviews from the Steam Game Reviews dataset.
+# The dataset can be found here: https://www.kaggle.com/smeeeow/steam-game-reviews
+# To use this file, download the dataset from the above link and extract its contents to the same directory as main_app.py.
 
 
 # Import statements
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+import time
 
 # Path to all CSVs
 DATA_PATH = 'game_rvw_csvs'
@@ -71,5 +74,12 @@ def main():
 	print("Distribution of positive and negative reviews. First number is positive, second number is negative")
 	print(data_pos.shape[0] / data.shape[0]) # About 87.5% "recommended"
 	print(data_neg.shape[0] / data.shape[0]) # About 12.4% "not recommended"
+	print(data_pos.shape[0]) # About 4 million
+	print(data_neg.shape[0]) # About 570 K
 
+
+# Main function
+start = time.time()
 main()
+elapsed = time.time() - start
+print("{} seconds".format(elapsed))
