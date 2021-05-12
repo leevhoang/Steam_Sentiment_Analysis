@@ -5,6 +5,7 @@
 # This file contains all of the primary neural network code.
 # WORK IN PROGRESS
 #
+# You will need to run "pip install tensorflow" to be able to execute this code.
 
 # Import statements for tensorflow.keras
 import tensorflow as tf
@@ -14,6 +15,7 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.models import load_model
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, LSTM
 from tensorflow.keras.layers import Activation, Dropout, Flatten, Dense, Embedding
+from tensorflow.keras.preprocessing.text import Tokenizer
 
 
 # Target size for neural network input.
@@ -51,3 +53,8 @@ def define_model():
 
 	# Return the finished model
 	return model
+
+
+# Placeholder function for training the model
+def train_model():
+	return 0
