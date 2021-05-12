@@ -16,6 +16,10 @@ import time # For timing how long it takes to run the script.
 # SKlearn - For splitting the dataset into the training and testing sets.
 from sklearn.model_selection import train_test_split
 
+# Import neural network code from a separate python file
+# 5/10/2021
+from steam_nn import define_model
+
 # Path to all CSVs
 DATA_PATH = 'game_rvw_csvs'
 
