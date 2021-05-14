@@ -12,13 +12,15 @@ import pandas as pd # For reading CSV files
 import matplotlib.pyplot as plt # For making plots
 import os
 import time # For timing how long it takes to run the script.
+import numpy as np
 
 # SKlearn - For splitting the dataset into the training and testing sets.
 from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 # Import neural network code from a separate python file
 # 5/10/2021
-from steam_nn import define_model
+from steam_nn import define_model, train_model
 
 # Path to all CSVs
 DATA_PATH = 'game_rvw_csvs'
@@ -35,13 +37,14 @@ def read_all_reviews():
 	all_reviews = []
 	length = 0
 
-
+	# For all reviews in the data path, read and load them into a single dataframe.
 	for reviews in os.listdir(DATA_PATH):
 		print("Reading " + reviews)
 		data = pd.read_csv(DATA_PATH + "/" + reviews)
 		length += data.shape[0]
 		all_reviews.append(data) 
 
+	# Create the dataframe and return it.
 	all_reviews = pd.concat(all_reviews, axis=0, ignore_index=True)
 	print("Total number of rows: {}".format(length))
 	return all_reviews
@@ -63,10 +66,15 @@ def preprocess_reviews(all_reviews):
 	# Remove all blank reviews.
 	print("Removing blank reviews")
 	all_reviews = all_reviews[all_reviews['review'] != ""]
+	all_reviews = all_reviews[all_reviews['review'] != np.nan]
+	all_reviews = all_reviews.dropna(axis='index', subset=['review']) # Drop NAN reviews
 	print("Number of reviews after removing blank reviews: {}".format(all_reviews.shape[0]))
+
+
 
 	# Return the preprocessed data
 	return all_reviews
+
 
 # Split the dataset into the training and test sets.
 # reviews is a dataframe with two columns: reviews and voted_up
@@ -131,6 +139,30 @@ def main():
 	print("\ny_test distribution")
 	print(y_test_pos.shape[0]) # About 2 million
 	print(y_test_neg.shape[0]) # About 285 K
+
+	# ====================================================================================================
+	# VECTORIZE THE REVIEWS
+	# ====================================================================================================
+	# vectorizer = TfidfVectorizer()
+
+	# try:
+	# 	print("Fitting vectorizer to training data...")
+	# 	X_train = vectorizer.fit_transform(X_train)
+	# except:
+	# 	exit("Unable to fit vectorizer to training data. Closing program.")
+	# else:
+	# 	print("Successfully fit vectorizer to training data. Here is the shape.")
+	# 	print(X_train.shape)
+	# 	print("\n")
+
+	# 	# Sort the indices of the 
+	# 	#X_train_st = tf.sparse.reorder(X_train)
+
+	# ====================================================================================================
+	# CREATE AND TRAIN THE NN
+	# ====================================================================================================
+	NN = define_model()
+	train_model(NN, X_train, y_train)
 
 
 # ====================================================================================================

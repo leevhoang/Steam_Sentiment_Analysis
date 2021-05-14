@@ -17,6 +17,9 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, LSTM
 from tensorflow.keras.layers import Activation, Dropout, Flatten, Dense, Embedding
 from tensorflow.keras.preprocessing.text import Tokenizer
 
+import numpy as np
+
+
 
 # Target size for neural network input.
 # To be adjusted later
@@ -34,13 +37,15 @@ def define_model():
 	# The final layer has a sigmoid activation function meant for storing
 	# the prediction.
 	# =============================================================================
+	model = tf.keras.Sequential([
+		# INPUT LAYER
+		Embedding(1000, 32, input_length = 500000),
 
-	# INPUT LAYER
+		# HIDDEN LAYERS and OTHER BLOCKS
 
-	# HIDDEN LAYERS and OTHER BLOCKS
-
-	# OUTPUT LAYER
-
+		# OUTPUT LAYER
+		Dense(1, activation='sigmoid')
+	])
 	# =============================================================================
 
 	# Compile the finished model
@@ -56,5 +61,18 @@ def define_model():
 
 
 # Placeholder function for training the model
-def train_model():
-	return 0
+def train_model(model, X_train, y_train):
+	#dataset = tf.sparse.reorder(X_train)
+	X_train = X_train.values
+	#X_train = np.reshape(X_train, (-1, X_train.shape[0]))
+	model.fit(X_train, y_train, epochs=10)
+	# try:
+	# 	print("\nTraining the model...")
+	# 	dataset = tf.sparse.reorder(X_train)
+	# 	model.fit(X_train, y_train, epochs=10)
+	# except Exception as e:
+	# 	print("ERROR - Unable to train the model - closing program. Please see the error below for more details.")
+	# 	print(e)
+	# 	print("\nProgram closed with error\n")
+	# 	exit()
+	#return 0
