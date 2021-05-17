@@ -21,6 +21,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # Import neural network code from a separate python file
 # 5/10/2021
 from steam_nn import define_model, train_model
+from vader import vader_analysis
 
 # Path to all CSVs
 DATA_PATH = 'game_rvw_csvs'
@@ -42,7 +43,7 @@ def read_all_reviews():
 		print("Reading " + reviews)
 		data = pd.read_csv(DATA_PATH + "/" + reviews)
 		length += data.shape[0]
-		all_reviews.append(data) 
+		all_reviews.append(data)
 
 	# Create the dataframe and return it.
 	all_reviews = pd.concat(all_reviews, axis=0, ignore_index=True)
@@ -139,7 +140,6 @@ def main():
 	print("\ny_test distribution")
 	print(y_test_pos.shape[0]) # About 2 million
 	print(y_test_neg.shape[0]) # About 285 K
-
 	# ====================================================================================================
 	# VECTORIZE THE REVIEWS
 	# ====================================================================================================
@@ -155,7 +155,7 @@ def main():
 	# 	print(X_train.shape)
 	# 	print("\n")
 
-	# 	# Sort the indices of the 
+	# 	# Sort the indices of the
 	# 	#X_train_st = tf.sparse.reorder(X_train)
 
 	# ====================================================================================================
@@ -163,6 +163,9 @@ def main():
 	# ====================================================================================================
 	NN = define_model()
 	train_model(NN, X_train, y_train)
+
+	#Using vader sentiment analysis
+	vader_analysis(X_train)
 
 
 # ====================================================================================================
