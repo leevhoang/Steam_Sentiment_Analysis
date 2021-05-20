@@ -64,7 +64,16 @@ def define_model():
 def train_model(model, X_train, y_train):
 	#dataset = tf.sparse.reorder(X_train)
 	X_train = X_train.values
+	y_train = y_train.to_numpy()
+	print("befoer x:",type(X_train))
+	print("befoer y:", type(y_train))
+	X_train = np.asarray(X_train)
+	y_train = np.asarray(y_train)
+	print(y_train)
 	#X_train = np.reshape(X_train, (-1, X_train.shape[0]))
+
+	print("afterx:",type(X_train))
+	print("aftery:", type(y_train))
 	model.fit(X_train, y_train, epochs=10)
 	# try:
 	# 	print("\nTraining the model...")

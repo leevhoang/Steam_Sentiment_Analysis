@@ -21,7 +21,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 # Import neural network code from a separate python file
 # 5/10/2021
 from steam_nn import define_model, train_model
-from vader import vader_analysis
+from vader import Vader
 
 # Path to all CSVs
 DATA_PATH = 'game_rvw_csvs'
@@ -89,6 +89,7 @@ def split_dataset(reviews):
 
 # Main function
 def main():
+	vader = Vader()
 	#print("Reading all game reviews now:")
 	all_reviews = read_all_reviews()
 	#print(all_reviews)
@@ -161,11 +162,16 @@ def main():
 	# ====================================================================================================
 	# CREATE AND TRAIN THE NN
 	# ====================================================================================================
-	NN = define_model()
-	train_model(NN, X_train, y_train)
+	#NN = define_model()
+	#train_model(NN, X_train, y_train)
 
 	#Using vader sentiment analysis
-	vader_analysis(X_train)
+	print("====================================================================================================")
+	print(len(X_train))
+	print(len(y_train))
+	vader.vader_analysis(X_train)
+	print("Accuracy of vader analysis:", vader.vader_validation(y_train))
+
 
 
 # ====================================================================================================
