@@ -5,7 +5,8 @@
 # This file reads and preprocesses reviews from the Steam Game Reviews dataset.
 # The dataset can be found here: https://www.kaggle.com/smeeeow/steam-game-reviews
 # To use this file, download the dataset from the above link and extract its contents to the same directory as main_app.py.
-
+#
+# Source for Embedding layer and preprocessing info: https://realpython.com/python-keras-text-classification/#introducing-keras
 
 # Import statements
 import pandas as pd # For reading CSV files
@@ -17,11 +18,17 @@ import numpy as np
 # SKlearn - For splitting the dataset into the training and testing sets.
 from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 
 # Import neural network code from a separate python file
 # 5/10/2021
 from steam_nn import define_model, train_model
-from vader import Vader
+
+from tensorflow.keras.preprocessing.text import Tokenizer # For preprocessing text
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+from vader import vader_analysis
+
 
 # Path to all CSVs
 DATA_PATH = 'game_rvw_csvs'
@@ -38,8 +45,15 @@ def read_all_reviews():
 	all_reviews = []
 	length = 0
 
+	# Array containing a list of CSV files:
+	review_data = os.listdir(DATA_PATH)
+
+	# # DEBUG - Read only a subset of reviews. If all reviews are read, the code will experience an out of memory error.
+	#review_data = review_data[0:1]
+	# print("Number of review sets to read: {}".format(len(review_data)))
+
 	# For all reviews in the data path, read and load them into a single dataframe.
-	for reviews in os.listdir(DATA_PATH):
+	for reviews in review_data:
 		print("Reading " + reviews)
 		data = pd.read_csv(DATA_PATH + "/" + reviews)
 		length += data.shape[0]
@@ -53,6 +67,11 @@ def read_all_reviews():
 # ====================================================================================================
 # PREPROCESSING
 # ====================================================================================================
+
+# Lowercase a single review
+def lowercase_text(review):
+	return review.lower()
+
 
 # preprocess the reviews to remove non-English and blank reviews.
 def preprocess_reviews(all_reviews):
@@ -71,7 +90,8 @@ def preprocess_reviews(all_reviews):
 	all_reviews = all_reviews.dropna(axis='index', subset=['review']) # Drop NAN reviews
 	print("Number of reviews after removing blank reviews: {}".format(all_reviews.shape[0]))
 
-
+	# Lowercase all text
+	all_reviews['review'] = all_reviews['review'].apply(lambda review: lowercase_text(review))
 
 	# Return the preprocessed data
 	return all_reviews
@@ -89,22 +109,28 @@ def split_dataset(reviews):
 
 # Main function
 def main():
-	vader = Vader()
-	#print("Reading all game reviews now:")
-	all_reviews = read_all_reviews()
-	#print(all_reviews)
-	print("Number of reviews: {}".format(all_reviews.shape[0]))
 
+	# For production - Read all reviews in the directory
+	all_reviews = read_all_reviews()
+
+	# # DEBUG - read just one set of reviews - Counterstrike
+	# # This is to ensure that we can finetune the input before passing it into the model
+	# all_reviews = pd.read_csv(DATA_PATH + "/" + "10_CounterStrike.csv")
+
+	print("Number of reviews: {}".format(all_reviews.shape[0]))
 	print("Finished reading data.\n\n")
 
 	# Preprocess the data.
-	# - Remove all non-English reviews
-	# - Remove all reviews where the review is blank
+	# - Remove all non-English reviews (reviews where the value in the language column is not English)
+	# NOTE: Some reviews are marked as "english" but have non-English text in them.
+	# - Remove all reviews where the review is blank or NaN
+	# - Make all reviews lowercase
 	print("Preprocessing reviews")
 	all_reviews = preprocess_reviews(all_reviews)
 
 	# Separate the reviews and labels from other data
-	data = all_reviews[['review', 'voted_up']]
+	# Include the requested features
+	data = all_reviews[['review', 'author.num_games_owned', 'voted_up']]
 
 	# Separate the dataset into positive and negative reviews.
 	data_pos = data[data['voted_up'] == True]
@@ -120,14 +146,32 @@ def main():
 
 	# Cut out a lot of positive reviews as the dataset is imbalanced: 4 million reviews are positive, but 570 thousand are negative.
 	# Goal: Get about 1 million reviews total with 570 K for training and 570 K for testing.
-	data_pos = data_pos.iloc[0:570914, :]
+	data_pos = data_pos.iloc[0:570914, :] # For all reviews
+	#data_pos = data_pos.iloc[0:]
 	data = data_pos.append(data_neg, ignore_index=True) # Rejoin the negative reviews with the modified positive reviews set.
 
 	# Split the data into the training and test sets.
 	# We aim for 400 K reviews (balanced and combined) out of 4.6 million
+	#X = data[['review', 'author.num_games_owned']]
 	X = data['review']
 	y = data['voted_up']
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=23, stratify=y)
+
+
+	# Using vader sentiment analysis to get results
+	print("Vader sentiment analysis in progress...")
+	vader_results = vader_analysis(X_train)
+	vader_df = pd.DataFrame(vader_results.tolist()) # Convert the list of Vader results into a dataframe.
+	print(vader_results)
+	#print(vader_results.tolist())
+	print(vader_df)
+
+	print(X_train)
+
+	from nltk.sentiment.vader import SentimentIntensityAnalyzer
+	analyzer = SentimentIntensityAnalyzer()
+	print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
+	print(analyzer.polarity_scores("fps wasn't part of our deal."))
 
 	y_train_pos = y_train[y_train == True]
 	y_train_neg = y_train[y_train == False]
@@ -144,34 +188,48 @@ def main():
 	# ====================================================================================================
 	# VECTORIZE THE REVIEWS
 	# ====================================================================================================
-	# vectorizer = TfidfVectorizer()
+	#vectorizer = TfidfVectorizer() # This will automatically lower-case the input.
+	#vectorizer = CountVectorizer()
+	vectorizer = Tokenizer(lower=True) # Alternative tokenizer for working with the embedding layer
 
-	# try:
-	# 	print("Fitting vectorizer to training data...")
-	# 	X_train = vectorizer.fit_transform(X_train)
-	# except:
-	# 	exit("Unable to fit vectorizer to training data. Closing program.")
-	# else:
-	# 	print("Successfully fit vectorizer to training data. Here is the shape.")
-	# 	print(X_train.shape)
-	# 	print("\n")
+	try:
+		# First choice: Use sklearn's Tfidf or CountVectorizer
+		# print("Fitting vectorizer to training data...")
+		# X_train = vectorizer.fit_transform(X_train)
 
-	# 	# Sort the indices of the
+		# Alternative vectorizer: Use Keras Tokenizer instead of sklearn's vectorizers.
+		# This will allow us to use the embedding layer in the neural network
+		vectorizer.fit_on_texts(X_train)
+		X_train = vectorizer.texts_to_sequences(X_train) # 
+		X_test = vectorizer.texts_to_sequences(X_test) # 
+		vocab_size=len(vectorizer.word_index) + 1 # Comes from the length of the vectorizer's word index. Required for flattening
+
+		X_train = pad_sequences(X_train, padding='post', maxlen=100)
+		X_test = pad_sequences(X_test, padding='post', maxlen=100)
+
+	except:
+		exit("Unable to fit vectorizer to training data. Closing program.")
+	else:
+		print("Successfully fit vectorizer to training data. Here is the shape.")
+		#print(X_train.shape)
+		print("\n")
+
+
+	# 	# Sort the indices of the sparse matrix.
 	# 	#X_train_st = tf.sparse.reorder(X_train)
+
 
 	# ====================================================================================================
 	# CREATE AND TRAIN THE NN
 	# ====================================================================================================
-	#NN = define_model()
-	#train_model(NN, X_train, y_train)
+	print("Defining the model...")
+	NN = define_model(X_train, vocab_size)
+	print("\n\n")
+	#print("Training the model...")
+	train_model(NN, X_train, y_train, X_test, y_test, epochs=1)
 
-	#Using vader sentiment analysis
-	print("====================================================================================================")
-	print(len(X_train))
-	print(len(y_train))
-	vader.vader_analysis(X_train)
-	print("Accuracy of vader analysis:", vader.vader_validation(y_train))
-
+	# # Using vader sentiment analysis to get results
+	# vader_results = vader_analysis(X_train)
 
 
 # ====================================================================================================
