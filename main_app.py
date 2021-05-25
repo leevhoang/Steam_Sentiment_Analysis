@@ -160,6 +160,12 @@ def main():
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=23, stratify=y)
 
 	# Using vader sentiment analysis to get results
+
+	from nltk.sentiment.vader import SentimentIntensityAnalyzer
+	analyzer = SentimentIntensityAnalyzer()
+	print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
+	print(analyzer.polarity_scores("fps wasn't part of our deal."))
+	print(type(y_train))
 	print("Vader sentiment analysis in progress...")
 	vader.vader_analysis(X_train)
 	vader_results = vader.vader_validation(y_train)
