@@ -39,18 +39,22 @@ def define_model(X_train, vocab_size):
 	# =============================================================================
 	print("VOCAB SIZE {}".format(vocab_size))
 	print("\n\n\n")
-	model = tf.keras.Sequential([
-		# INPUT LAYER
-		Embedding(input_dim=vocab_size, output_dim=64, input_length=100),
-		# For using word embeddings. Right now, using CountVectorizer on input will cause the code to crash with the embedding layer.
-		# Flatten(),
-		# HIDDEN LAYERS and OTHER BLOCKS
-		LSTM(15, dropout=0.5),  # LSTM layer
+	# model = tf.keras.Sequential([
+	# 	# INPUT LAYER
+	# 	Embedding(input_dim=vocab_size, output_dim=64, input_length=100),
+	# 	# For using word embeddings. Right now, using CountVectorizer on input will cause the code to crash with the embedding layer.
+	# 	# Flatten(),
+	# 	# HIDDEN LAYERS and OTHER BLOCKS
+	# 	LSTM(15, dropout=0.5),  # LSTM layer
 
-		# OUTPUT LAYER
-		# Uses a sigmoid activation function because we are doing binary classification
-		Dense(1, activation='sigmoid')
-	])
+	# 	# OUTPUT LAYER
+	# 	# Uses a sigmoid activation function because we are doing binary classification
+	# 	Dense(1, activation='sigmoid')
+	# ])
+	model = Sequential()
+	model.add(Embedding(input_dim=vocab_size, output_dim=64, input_length=100))
+	model.add(LSTM(15, dropout=0.5))
+	model.add(Dense(1, activation='sigmoid'))
 	# =============================================================================
 
 	# Compile the finished model

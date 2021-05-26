@@ -9,10 +9,10 @@ class TestMain(TestCase):
 		expected = lowercase_text("This is a test")
 		self.assertEqual(expected, "this is a test")
 
-	def test_remove_punctuation(self):
+	def test_remove_punctuation(self): # Punctuation should be removed.
 		expected = remove_punctuation("Question? Exclamation!")
 		self.assertEqual(expected, "Question Exclamation")
 
-	def test_remove_links_and_emails(self):
+	def test_remove_links_and_emails(self): # This test doesn't work and it needs to be fixed.
 		expected = remove_links_and_emails("abcdef https://stackoverflow.com/ fdsffdf")
 		self.assertEqual(expected, "abcdef fdsffdf")

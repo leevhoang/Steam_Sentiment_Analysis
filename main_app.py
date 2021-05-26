@@ -49,9 +49,16 @@ def read_all_reviews():
     # Array containing a list of CSV files:
     review_data = os.listdir(DATA_PATH)
 
-    # # DEBUG - Read only a subset of reviews. If all reviews are read, the code will experience an out of memory error.
-    # review_data = review_data[0:1]
+    # # DEBUG - Read only a subset of reviews. 
+    # For Tensorflow 2, reading all reviews leads to an error, but reading a subset will not cause errors.
+    # Turns out six CSVs in the dataset are completely empty - nothing but column headers are present
+    # review_data = review_data[0:20] # This will not crash
+    # review_data = review_data[0:21] # On TF2, this line will crash the code because it will read an empty CSV
     # print("Number of review sets to read: {}".format(len(review_data)))
+
+    # This is a list of review csvs that were completely empty.
+    empty_reviews = ['50100_SidMeiersCivilizationV.csv', '255710_CitiesSkylines.csv', '292030_TheWitcher3WildHunt.csv', '435150_DivinityOriginalSin2.csv', '1145360_Hades.csv', '1222730_STARWARSSquadrons.csv']
+    review_data = [filename for filename in review_data if filename not in empty_reviews]
 
     # For all reviews in the data path, read and load them into a single dataframe.
     for reviews in review_data:
@@ -157,7 +164,7 @@ def split_dataset(reviews):
 
 def run_model(X_train, X_test):
 	# First choice: Use sklearn's Tfidf or CountVectorizer
-	# print("Fitting vectorizer to training data...")
+	print("Fitting vectorizer to training data...")
 	# X_train = vectorizer.fit_transform(X_train)
 
 	# Alternative vectorizer: Use Keras Tokenizer instead of sklearn's vectorizers.
@@ -184,6 +191,8 @@ def main():
 	# # DEBUG - read just one set of reviews - Counterstrike
 	# # This is to ensure that we can finetune the input before passing it into the model
 	# all_reviews = pd.read_csv(DATA_PATH + "/" + "10_CounterStrike.csv")
+	# all_reviews = pd.read_csv(DATA_PATH + "/" + "1145360_Hades.csv")
+	
 
 	print("Number of reviews: {}".format(all_reviews.shape[0]))
 	print("Finished reading data.\n\n")
