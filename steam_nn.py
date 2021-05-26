@@ -22,8 +22,6 @@ from tensorflow.keras.preprocessing.text import Tokenizer
 
 import numpy as np
 
-
-
 # Target size for neural network input.
 # To be adjusted later
 target_size = (1, 1)
@@ -32,7 +30,6 @@ target_size = (1, 1)
 # Define the neural network, which will take as input a review.
 # It will output a prediction.
 def define_model(X_train, vocab_size):
-
 	# Set up an empty model and the first three convolutional layers.
 	# Each convolutional layer has an activation function and
 	# a max pooling layer.
@@ -55,30 +52,32 @@ def define_model(X_train, vocab_size):
 	])
 	# =============================================================================
 
-	# Compile the finished model
-	# Binary problems like this one require a binary cross entropy loss
-	model.compile(
-		loss='binary_crossentropy', 
-		optimizer='rmsprop', # Default optimizer. 
-		metrics=['accuracy'] # We will measure the accuracy.
-		)
 
-	# Return the finished model
-	print(model.summary())
-	return model
+    # Compile the finished model
+    # Binary problems like this one require a binary cross entropy loss
+    model.compile(
+        loss='binary_crossentropy',
+        optimizer='rmsprop',  # Default optimizer.
+        metrics=['accuracy']  # We will measure the accuracy.
+    )
+
+    # Return the finished model
+    print(model.summary())
+    return model
 
 
 # Placeholder function for training the model
 def train_model(model, X_train, y_train, X_test, y_test, epochs):
-	try:
-		print("\nTraining the model...")
-		history = model.fit(x=X_train, y=y_train, epochs=epochs) # x expects a numpy array or a list of arrays. y should be the same time as x
-	except Exception as e:
-		print("ERROR - Unable to train the model - closing program. Please see the error below for more details.")
-		print(e)
-		print("\nProgram closed with error\n")
-		exit()
-	else:
-		print("Training successful. Evaluating the model on the test set...")
-		loss, accuracy = model.evaluate(X_test, y_test)
-		print("TESTING ACCURACY: {}".format(accuracy))
+    try:
+        print("\nTraining the model...")
+        history = model.fit(x=X_train, y=y_train,
+                            epochs=epochs)  # x expects a numpy array or a list of arrays. y should be the same time as x
+    except Exception as e:
+        print("ERROR - Unable to train the model - closing program. Please see the error below for more details.")
+        print(e)
+        print("\nProgram closed with error\n")
+        exit()
+    else:
+        print("Training successful. Evaluating the model on the test set...")
+        loss, accuracy = model.evaluate(X_test, y_test)
+        print("TESTING ACCURACY: {}".format(accuracy))
