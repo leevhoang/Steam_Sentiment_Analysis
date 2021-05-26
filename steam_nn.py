@@ -41,17 +41,17 @@ def define_model(X_train, vocab_size):
 	print("\n\n\n")
 	model = tf.keras.Sequential([
 		# INPUT LAYER
-		Embedding(input_dim=vocab_size, output_dim=64, input_length=100), # For using word embeddings. Right now, using CountVectorizer on input will cause the code to crash with the embedding layer.
-		#Flatten(),
+		Embedding(input_dim=vocab_size, output_dim=64, input_length=100),
+		# For using word embeddings. Right now, using CountVectorizer on input will cause the code to crash with the embedding layer.
+		# Flatten(),
 		# HIDDEN LAYERS and OTHER BLOCKS
-		LSTM(15, dropout=0.5), # LSTM layer
+		LSTM(15, dropout=0.5),  # LSTM layer
 
 		# OUTPUT LAYER
 		# Uses a sigmoid activation function because we are doing binary classification
 		Dense(1, activation='sigmoid')
 	])
 	# =============================================================================
-
 
 	# Compile the finished model
 	# Binary problems like this one require a binary cross entropy loss

@@ -1,9 +1,10 @@
-# Unit test file
-# Test all major functions in main_app.py to ensure that no errors occur
-
-import pytest
+from unittest import TestCase
+from vader import Vader, analyze_polarity_scores
+import pandas as pd
 from main_app import lowercase_text
 
 
-def test_lowercase_text():
-	assert lowercase_text("This is a test") == "this is a test"
+class TestMain(TestCase):
+    def test_lowercase_text(self):
+        expected = lowercase_text("This is a test")
+        self.assertEqual(expected, "this is a test")
