@@ -1,6 +1,4 @@
-from numba import jit
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-import pandas as pd
 
 analyzer = SentimentIntensityAnalyzer()
 
@@ -9,11 +7,12 @@ analyzer = SentimentIntensityAnalyzer()
 def analyze_polarity_scores(review):
     return analyzer.polarity_scores(review)
 
-
+# Vader class
 class Vader:
     def __init__(self):
         self.analysis_results = []
 
+    # Perform vader analysis 
     def vader_analysis(self, reviews):
         print("Vader analysis:")
         counter = 0

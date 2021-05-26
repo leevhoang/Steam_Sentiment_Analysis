@@ -7,6 +7,7 @@
 # To use this file, download the dataset from the above link and extract its contents to the same directory as main_app.py.
 #
 # Source for Embedding layer and preprocessing info: https://realpython.com/python-keras-text-classification/#introducing-keras
+# Source for using Embedding layer with LSTM: https://www.liip.ch/en/blog/sentiment-detection-with-keras-word-embeddings-and-lstm-deep-learning-networks
 
 # Import statements
 import pandas as pd  # For reading CSV files
@@ -27,11 +28,11 @@ from steam_nn import define_model, train_model
 from tensorflow.keras.preprocessing.text import Tokenizer  # For preprocessing text
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 
+# Vader import
 from vader import Vader
 
 # Path to all CSVs
 DATA_PATH = 'game_rvw_csvs'
-
 
 # ====================================================================================================
 # LOAD DATA
@@ -73,10 +74,40 @@ def lowercase_text(review):
 	return review.lower()
 
 
+# Remove all punctuation from a single review (. , ? ! ;:)
+# Replace all punctuation with whitespace
+def remove_punctuation(review):
+
+	punctuation = """.,?!;:"""
+
+	for char in review:
+		if char in punctuation:
+			review = review.replace(char, "")
+	return review
+
+
+# Remove all punctuation from a single review (. , ? !)
+# Replace all punctuation with whitespace
+def remove_newlines(review):
+	review_word_list = review.split("\n")
+	review = " ".join(review_word_list)
+	return review
+
+# Remove all links. They usually start with http or https
+def remove_links_and_emails(review):
+	review_word_list = review.split("\n")
+
+	# Remove anything that is a link (usually starts with http or https)
+	review_word_list = [word for word in review_word_list if 'http' not in word or 'https' not in word]
+
+	review = " ".join(review_word_list)
+	return review
+
+
 # preprocess the reviews to remove non-English and blank reviews.
 def preprocess_reviews(all_reviews):
 	# Remove all non-English reviews
-	print("Removing non-English reviews")
+	print("Removing non-English reviews...")
 	non_english_reviews = all_reviews[all_reviews['language'] != 'english']
 	all_reviews = all_reviews[all_reviews['language'] == 'english']
 
@@ -84,14 +115,30 @@ def preprocess_reviews(all_reviews):
 	print("Number of reviews after removing non-English reviews: {}\n".format(all_reviews.shape[0]))
 
 	# Remove all blank reviews.
-	print("Removing blank reviews")
+	print("Removing blank reviews...")
 	all_reviews = all_reviews[all_reviews['review'] != ""]
 	all_reviews = all_reviews[all_reviews['review'] != np.nan]
 	all_reviews = all_reviews.dropna(axis='index', subset=['review'])  # Drop NAN reviews
 	print("Number of reviews after removing blank reviews: {}".format(all_reviews.shape[0]))
 
 	# Lowercase all text
+	print("Lowercasing all reviews...")
 	all_reviews['review'] = all_reviews['review'].apply(lambda review: lowercase_text(review))
+
+	# Remove all newlines from the review.
+	print("Removing newlines...")
+	all_reviews['review'] = all_reviews['review'].apply(lambda review: remove_newlines(review))
+
+	# Remove all punctuation (. , ? ! -)
+	# TBD
+	print("Removing punctuation...")
+	all_reviews['review'] = all_reviews['review'].apply(lambda review: remove_punctuation(review))
+
+
+	# Remove special characters and links
+	# Ex: http, https, @, #, *
+	print("Removing special characters...")
+	all_reviews['review'] = all_reviews['review'].apply(lambda review: remove_links_and_emails(review))
 
 	# Return the preprocessed data
 	return all_reviews
@@ -128,6 +175,7 @@ def main():
 	# - Make all reviews lowercase
 	print("Preprocessing reviews")
 	all_reviews = preprocess_reviews(all_reviews)
+	print(all_reviews['review'].head())
 
 	# Separate the reviews and labels from other data
 	# Include the requested features
@@ -159,24 +207,25 @@ def main():
 	y = data['voted_up']
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=23, stratify=y)
 
-	# Using vader sentiment analysis to get results
-	print("Vader sentiment analysis in progress...")
-	vader.vader_analysis(X_train)
-	vader_results = vader.vader_validation(y_train)
-	# vader_df = pd.DataFrame(vader_results.tolist())  # Convert the list of Vader results into a dataframe.
-	print("===========================================================")
-	print("Vader prediction accuracy: ", str(round(vader_results * 100, 2)) + "%")
-	print("===========================================================")
-	# # print(vader_results.tolist())
-	# print(vader_df)
-	#
-	# print(X_train)
+	# VADER STUFF - uncomment when ready
+	# # Using vader sentiment analysis to get results
+	# print("Vader sentiment analysis in progress...")
+	# vader.vader_analysis(X_train)
+	# vader_results = vader.vader_validation(y_train)
+	# # vader_df = pd.DataFrame(vader_results.tolist())  # Convert the list of Vader results into a dataframe.
+	# print("===========================================================")
+	# print("Vader prediction accuracy: ", str(round(vader_results * 100, 2)) + "%")
+	# print("===========================================================")
+	# # # print(vader_results.tolist())
+	# # print(vader_df)
+	# #
+	# # print(X_train)
 
 
-	from nltk.sentiment.vader import SentimentIntensityAnalyzer
-	analyzer = SentimentIntensityAnalyzer()
-	print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
-	print(analyzer.polarity_scores("fps wasn't part of our deal."))
+	# from nltk.sentiment.vader import SentimentIntensityAnalyzer
+	# analyzer = SentimentIntensityAnalyzer()
+	# print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
+	# print(analyzer.polarity_scores("fps wasn't part of our deal."))
 
 	y_train_pos = y_train[y_train == True]
 	y_train_neg = y_train[y_train == False]
@@ -216,12 +265,9 @@ def main():
 	except:
 		exit("Unable to fit vectorizer to training data. Closing program.")
 	else:
-		print("Successfully fit vectorizer to training data. Here is the shape.")
-		# print(X_train.shape)
+		print("Successfully fit vectorizer to training data.")
 		print("\n")
 
-	# 	# Sort the indices of the sparse matrix.
-	# 	#X_train_st = tf.sparse.reorder(X_train)
 
 	# ====================================================================================================
 	# CREATE AND TRAIN THE NN
@@ -229,12 +275,10 @@ def main():
 	print("Defining the model...")
 	NN = define_model(X_train, vocab_size)
 	print("\n\n")
-	# print("Training the model...")
+	print("Training the model...")
 	train_model(NN, X_train, y_train, X_test, y_test, epochs=1)
 
 
-# # Using vader sentiment analysis to get results
-# vader_results = vader_analysis(X_train)
 
 
 # ====================================================================================================
