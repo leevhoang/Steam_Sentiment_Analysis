@@ -95,11 +95,12 @@ def remove_newlines(review):
 
 
 # Remove all links. They usually start with http or https
+# This also includes foreign characters
 def remove_links_and_emails(review):
-    review_word_list = review.split("\n")
+    review_word_list = review.split()
 
     # Remove anything that is a link (usually starts with http or https)
-    review_word_list = [word for word in review_word_list if 'http' not in word or 'https' not in word]
+    review_word_list = [word for word in review_word_list if 'http' not in word or 'ð' not in word]
 
     review = " ".join(review_word_list)
     return review
@@ -153,6 +154,25 @@ def split_dataset(reviews):
 # ====================================================================================================
 # MAIN
 # ====================================================================================================
+
+def run_model(X_train, X_test):
+	# First choice: Use sklearn's Tfidf or CountVectorizer
+	# print("Fitting vectorizer to training data...")
+	# X_train = vectorizer.fit_transform(X_train)
+
+	# Alternative vectorizer: Use Keras Tokenizer instead of sklearn's vectorizers.
+	# This will allow us to use the embedding layer in the neural network
+	vectorizer = Tokenizer(lower=True)  # Alternative tokenizer for working with the embedding layer
+	vectorizer.fit_on_texts(X_train)
+
+	X_train = vectorizer.texts_to_sequences(X_train)  #
+	X_test = vectorizer.texts_to_sequences(X_test)  #
+	vocab_size = len(vectorizer.word_index) + 1  # Comes from the length of the vectorizer's word index. Required for flattening
+
+	X_train = pad_sequences(X_train, padding='post', maxlen=100)
+	X_test = pad_sequences(X_test, padding='post', maxlen=100)
+
+	return X_train, X_test, vocab_size
 
 
 # Main function
@@ -209,27 +229,24 @@ def main():
 
 	# Using vader sentiment analysis to get results
 
-	from nltk.sentiment.vader import SentimentIntensityAnalyzer
-	analyzer = SentimentIntensityAnalyzer()
-	print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
-	print(analyzer.polarity_scores("fps wasn't part of our deal."))
-	print(type(y_train))
-	print("Vader sentiment analysis in progress...")
-	vader.vader_analysis(X_train)
-	vader_results = vader.vader_validation(y_train)
-	# vader_df = pd.DataFrame(vader_results.tolist())  # Convert the list of Vader results into a dataframe.
-	print("===========================================================")
-	print("Vader prediction accuracy: ", str(round(vader_results * 100, 2)) + "%")
-	print("===========================================================")
-	# # print(vader_results.tolist())
-	# print(vader_df)
-	#
-	# print(X_train)
-
 	# from nltk.sentiment.vader import SentimentIntensityAnalyzer
 	# analyzer = SentimentIntensityAnalyzer()
 	# print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
 	# print(analyzer.polarity_scores("fps wasn't part of our deal."))
+
+	# print(type(y_train))
+	# print("Vader sentiment analysis in progress...")
+	# vader.vader_analysis(X_train)
+	# vader_results = vader.vader_validation(y_train)
+	# # vader_df = pd.DataFrame(vader_results.tolist())  # Convert the list of Vader results into a dataframe.
+	# print("===========================================================")
+	# print("Vader prediction accuracy: ", str(round(vader_results * 100, 2)) + "%")
+	# print("===========================================================")
+	# # # print(vader_results.tolist())
+	# # print(vader_df)
+	# #
+	# # print(X_train)
+
 
 	y_train_pos = y_train[y_train == True]
 	y_train_neg = y_train[y_train == False]
@@ -246,26 +263,9 @@ def main():
 	# ====================================================================================================
 	# VECTORIZE THE REVIEWS
 	# ====================================================================================================
-	# vectorizer = TfidfVectorizer() # This will automatically lower-case the input.
-	# vectorizer = CountVectorizer()
-	vectorizer = Tokenizer(lower=True)  # Alternative tokenizer for working with the embedding layer
-
+	
 	try:
-	    # First choice: Use sklearn's Tfidf or CountVectorizer
-	    # print("Fitting vectorizer to training data...")
-	    # X_train = vectorizer.fit_transform(X_train)
-
-	    # Alternative vectorizer: Use Keras Tokenizer instead of sklearn's vectorizers.
-	    # This will allow us to use the embedding layer in the neural network
-	    vectorizer.fit_on_texts(X_train)
-	    X_train = vectorizer.texts_to_sequences(X_train)  #
-	    X_test = vectorizer.texts_to_sequences(X_test)  #
-	    vocab_size = len(
-	        vectorizer.word_index) + 1  # Comes from the length of the vectorizer's word index. Required for flattening
-
-	    X_train = pad_sequences(X_train, padding='post', maxlen=100)
-	    X_test = pad_sequences(X_test, padding='post', maxlen=100)
-
+		X_train, X_test, vocab_size = run_model(X_train, X_test)
 	except:
 	    exit("Unable to fit vectorizer to training data. Closing program.")
 	else:
