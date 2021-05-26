@@ -30,28 +30,28 @@ target_size = (1, 1)
 # Define the neural network, which will take as input a review.
 # It will output a prediction.
 def define_model(X_train, vocab_size):
-	# Set up an empty model and the first three convolutional layers.
-	# Each convolutional layer has an activation function and
-	# a max pooling layer.
-	#
-	# The final layer has a sigmoid activation function meant for storing
-	# the prediction.
-	# =============================================================================
-	print("VOCAB SIZE {}".format(vocab_size))
-	print("\n\n\n")
-	model = tf.keras.Sequential([
-		# INPUT LAYER
-		Embedding(input_dim=vocab_size, output_dim=64, input_length=100), # For using word embeddings. Right now, using CountVectorizer on input will cause the code to crash with the embedding layer.
-		#Flatten(),
-		# HIDDEN LAYERS and OTHER BLOCKS
-		LSTM(15, dropout=0.5), # LSTM layer
+    # Set up an empty model and the first three convolutional layers.
+    # Each convolutional layer has an activation function and
+    # a max pooling layer.
+    #
+    # The final layer has a sigmoid activation function meant for storing
+    # the prediction.
+    # =============================================================================
+    print("VOCAB SIZE {}".format(vocab_size))
+    print("\n\n\n")
+    model = tf.keras.Sequential([
+        # INPUT LAYER
+        Embedding(input_dim=vocab_size, output_dim=64, input_length=100),
+        # For using word embeddings. Right now, using CountVectorizer on input will cause the code to crash with the embedding layer.
+        # Flatten(),
+        # HIDDEN LAYERS and OTHER BLOCKS
+        LSTM(15, dropout=0.5),  # LSTM layer
 
-		# OUTPUT LAYER
-		# Uses a sigmoid activation function because we are doing binary classification
-		Dense(1, activation='sigmoid')
-	])
-	# =============================================================================
-
+        # OUTPUT LAYER
+        # Uses a sigmoid activation function because we are doing binary classification
+        Dense(1, activation='sigmoid')
+    ])
+    # =============================================================================
 
     # Compile the finished model
     # Binary problems like this one require a binary cross entropy loss
