@@ -12,7 +12,12 @@ class Vader:
     def __init__(self):
         self.analysis_results = []
 
-    # Perform vader analysis 
+    # Perform vader analysis
+
+
+
+
+
     def vader_analysis(self, reviews):
         print("Vader analysis:")
         counter = 0
