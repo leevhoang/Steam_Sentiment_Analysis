@@ -16,8 +16,10 @@ Cd into the project directory and run the following commands:
  - conda install tensorflow-gpu==2.3.0
 
 Next, search for "Edit the System environment variables" and edit the PATH variable under User Variables to include paths to
- - The Cuda toolkit (usually C:\Users\YOURUSERNAME\Anaconda3\pkgs\cudatoolkit-10.1.243-h74a9793_0\Library\bin)
- - The CuDNN (usually C:\Users\YOURUSERNAME\Anaconda3\pkgs\cudnn-7.6.5-cuda10.0_0\Library\bin)
+ - The Cuda toolkit (usually C:\Users\YOURUSERNAME\Anaconda3\pkgs\cudatoolkit-[version-number]\Library\bin)
+ - The CuDNN (usually C:\Users\YOURUSERNAME\Anaconda3\pkgs\cudnn-[version-number]-cuda10.0_0\Library\bin)
+
+For TF 2.3.0, you will need CUDA 10.1 and CUDNN 7.6.5.
 
 Then restart the terminal.
 
