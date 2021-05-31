@@ -19,5 +19,6 @@ class TestMain(TestCase):
 
 
 	def test_correct_spelling(self):
-		expected = correct_spelling("thsi is not speled correctli")
-		self.assertEqual(expected, "this is not spelled correctly")
+		d = enchant.Dict("en_US")
+		expected = correct_spelling(d, "thsi is not speled correctli")
+		self.assertEqual(expected, 3)
