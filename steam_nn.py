@@ -74,8 +74,7 @@ def define_model(X_train, vocab_size):
 def train_model(model, X_train, y_train, X_test, y_test, epochs):
 	try:
 		print("\nTraining the model...")
-		history = model.fit(x=X_train, y=y_train,
-		epochs=epochs)  # x expects a numpy array or a list of arrays. y should be the same time as x
+		history = model.fit(x=X_train, y=y_train, batch_size=32, epochs=epochs)  # x expects a numpy array or a list of arrays. y should be the same time as x
 	except Exception as e:
 		print("ERROR - Unable to train the model - closing program. Please see the error below for more details.")
 		print(e)
