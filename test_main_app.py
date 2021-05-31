@@ -16,3 +16,8 @@ class TestMain(TestCase):
 	def test_remove_links_and_emails(self): # This test doesn't work and it needs to be fixed.
 		expected = remove_links_and_emails("abcdef https://stackoverflow.com/ fdsffdf")
 		self.assertEqual(expected, "abcdef fdsffdf")
+
+
+	def test_correct_spelling(self):
+		expected = correct_spelling("thsi is not speled correctli")
+		self.assertEqual(expected, "this is not spelled correctly")
