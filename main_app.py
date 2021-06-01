@@ -67,7 +67,7 @@ def read_all_reviews():
 	# # DEBUG - Read only a subset of reviews.
 	# For Tensorflow 2, reading all reviews leads to an error, but reading a subset will not cause errors.
 	# Turns out six CSVs in the dataset are completely empty - nothing but column headers are present
-	#review_data = review_data[0:1] # This will not crash
+	#review_data = review_data[0:2] # This will not crash
 	# review_data = review_data[0:21] # On TF2, this line will crash the code because it will read an empty CSV
 	# print("Number of review sets to read: {}".format(len(review_data)))
 
@@ -232,30 +232,43 @@ def main():
 	print("Number of reviews: {}".format(all_reviews.shape[0]))
 	print("Finished reading data.\n\n")
 
-	# Preprocess the data.
-	# - Remove all non-English reviews (reviews where the value in the language column is not English)
-	# NOTE: Some reviews are marked as "english" but have non-English text in them.
-	# - Remove all reviews where the review is blank or NaN
-	# - Make all reviews lowercase
-	print("Preprocessing reviews")
-	all_reviews = preprocess_reviews(all_reviews)
-	print(all_reviews['review'].head())
-	print(all_reviews.shape[0])
+	# Separate the dataset into positive and negative reviews.
+	data_pos = all_reviews[all_reviews['voted_up'] == True]
+	data_neg = all_reviews[all_reviews['voted_up'] == False]
+
+	# Get a distribution of the data by label
+	plt.title("Label distribution")
+	plt.xlabel("Label")
+	plt.ylabel("Number of reviews (millions)")
+	plt.ticklabel_format(useOffset=False) # Do not show offset with large numbers
+	plt.bar(["Recommended", "Not Recommended"], [data_pos.shape[0], data_neg.shape[0]])
+	plt.savefig("distribution.png")
+	#plt.show()
+
+	# # Preprocess the data.
+	# # - Remove all non-English reviews (reviews where the value in the language column is not English)
+	# # NOTE: Some reviews are marked as "english" but have non-English text in them.
+	# # - Remove all reviews where the review is blank or NaN
+	# # - Make all reviews lowercase
+	# print("Preprocessing reviews")
+	# all_reviews = preprocess_reviews(all_reviews)
+	# print(all_reviews['review'].head())
+	# print(all_reviews.shape[0])
 
 
-	# Separate the reviews and labels from other data
-	# Include the requested features
-	data = all_reviews[['review', 'voted_up']]
+	# # Separate the reviews and labels from other data
+	# # Include the requested features
+	# data = all_reviews[['review', 'voted_up']]
 
-	# Detect language and remove all reviews where the result is not 'en' (English)
-	data['spelling'] = data['review'].apply(lambda review: correct_spelling(d, review))
-	print(data.head(20))
-	#debug_data = data.head(100)
-	#debug_data.to_excel("spelling_check.xlsx")
+	# # Detect language and remove all reviews where the result is not 'en' (English)
+	# data['spelling'] = data['review'].apply(lambda review: correct_spelling(d, review))
+	# print(data.head(20))
+	# #debug_data = data.head(100)
+	# #debug_data.to_excel("spelling_check.xlsx")
 
-	# Remove rows where the number of mispellings is greater than five
-	data = data[data['spelling'] < 5]
-	print(data.shape[0])
+	# # Remove rows where the number of mispellings is greater than five
+	# data = data[data['spelling'] < 5]
+	# print(data.shape[0])
 
 	# # Separate the dataset into positive and negative reviews.
 	# data_pos = data[data['voted_up'] == True]

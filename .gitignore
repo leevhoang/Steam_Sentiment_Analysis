@@ -7,3 +7,5 @@ game_rvw_csvs
 # Other folders
 .idea
 __pycache__
+results
+old
