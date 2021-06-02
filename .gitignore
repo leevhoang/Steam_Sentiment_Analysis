@@ -3,3 +3,9 @@ game_rvw_csvs
 
 # File extensions
 *.csv
+
+# Other folders
+.idea
+__pycache__
+results
+old
