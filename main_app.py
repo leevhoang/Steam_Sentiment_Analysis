@@ -246,19 +246,19 @@ def main():
 	#plt.show()
 
 	# # Preprocess the data.
-	# # - Remove all non-English reviews (reviews where the value in the language column is not English)
-	# # NOTE: Some reviews are marked as "english" but have non-English text in them.
-	# # - Remove all reviews where the review is blank or NaN
-	# # - Make all reviews lowercase
-	# print("Preprocessing reviews")
-	# all_reviews = preprocess_reviews(all_reviews)
-	# print(all_reviews['review'].head())
-	# print(all_reviews.shape[0])
+	# - Remove all non-English reviews (reviews where the value in the language column is not English)
+	# NOTE: Some reviews are marked as "english" but have non-English text in them.
+	# - Remove all reviews where the review is blank or NaN
+	# - Make all reviews lowercase
+	print("Preprocessing reviews")
+	all_reviews = preprocess_reviews(all_reviews)
+	print(all_reviews['review'].head())
+	print(all_reviews.shape[0])
 
 
-	# # Separate the reviews and labels from other data
-	# # Include the requested features
-	# data = all_reviews[['review', 'voted_up']]
+	# Separate the reviews and labels from other data
+	# Include the requested features
+	data = all_reviews[['review', 'voted_up']]
 
 	# # Detect language and remove all reviews where the result is not 'en' (English)
 	# data['spelling'] = data['review'].apply(lambda review: correct_spelling(d, review))
@@ -270,9 +270,9 @@ def main():
 	# data = data[data['spelling'] < 5]
 	# print(data.shape[0])
 
-	# # Separate the dataset into positive and negative reviews.
-	# data_pos = data[data['voted_up'] == True]
-	# data_neg = data[data['voted_up'] == False]
+	# Separate the dataset into positive and negative reviews.
+	data_pos = data[data['voted_up'] == True]
+	data_neg = data[data['voted_up'] == False]
 
 	# # print("Distribution of positive and negative reviews. First number is positive, second number is negative")
 	# # print(data_pos.shape[0] / data.shape[0]) # About 87.5% "recommended"
@@ -282,28 +282,28 @@ def main():
 
 	# print("\nSplitting dataset into training and testing")
 
-	# # Cut out a lot of positive reviews as the dataset is imbalanced: 4 million reviews are positive, but 570 thousand are negative.
-	# # Goal: Get about 1 million reviews total with 570 K for training and 570 K for testing.
-	# data_pos = data_pos.iloc[0:570914, :]  # For all reviews
-	# # data_pos = data_pos.iloc[0:]
-	# data = data_pos.append(data_neg, ignore_index=True)  # Rejoin the negative reviews with the modified positive reviews set.
+	# Cut out a lot of positive reviews as the dataset is imbalanced: 4 million reviews are positive, but 570 thousand are negative.
+	# Goal: Get about 1 million reviews total with 570 K for training and 570 K for testing.
+	data_pos = data_pos.iloc[0:570914, :]  # For all reviews
+	# data_pos = data_pos.iloc[0:]
+	data = data_pos.append(data_neg, ignore_index=True)  # Rejoin the negative reviews with the modified positive reviews set.
 
-	# # Split the data into the training and test sets.
-	# # We aim for 400 K reviews (balanced and combined) out of 4.6 million
-	# # X = data[['review', 'author.num_games_owned']]
-	# X = data['review']
-	# y = data['voted_up']
-	# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=23, stratify=y)
+	# Split the data into the training and test sets.
+	# We aim for 400 K reviews (balanced and combined) out of 4.6 million
+	# X = data[['review', 'author.num_games_owned']]
+	X = data['review']
+	y = data['voted_up']
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=23, stratify=y)
 
-	# print("trainning with bert")
-	# temp = []
-	# for i in y_train:
-	# 	if i == True:
-	# 		temp.append(int(1))
-	# 	else:
-	# 		temp.append(int(0))
-	# training_model(X_train, temp)
-	# print("tranning done")
+	print("trainning with bert")
+	temp = []
+	for i in y_train:
+		if i == True:
+			temp.append(int(1))
+		else:
+			temp.append(int(0))
+	training_model(X_train, temp)
+	print("tranning done")
 
 
 
@@ -341,26 +341,26 @@ def main():
 	# print("\ny_test distribution")
 	# print(y_test_pos.shape[0])  # About 2 million
 	# print(y_test_neg.shape[0])  # About 285 K
-	# # ====================================================================================================
-	# # VECTORIZE THE REVIEWS
-	# # ====================================================================================================
+	# ====================================================================================================
+	# VECTORIZE THE REVIEWS
+	# ====================================================================================================
 
-	# try:
-	# 	X_train, X_test, vocab_size = run_model(X_train, X_test)
-	# except:
-	# 	exit("Unable to fit vectorizer to training data. Closing program.")
-	# else:
-	# 	print("Successfully fit vectorizer to training data.")
-	# 	print("\n")
+	try:
+		X_train, X_test, vocab_size = run_model(X_train, X_test)
+	except:
+		exit("Unable to fit vectorizer to training data. Closing program.")
+	else:
+		print("Successfully fit vectorizer to training data.")
+		print("\n")
 
-	# # ====================================================================================================
-	# # CREATE AND TRAIN THE NN
-	# # ====================================================================================================
-	# print("Defining the model...")
-	# NN = define_model(X_train, vocab_size)
-	# print("\n\n")
-	# print("Training the model...")
-	# train_model(NN, X_train, y_train, X_test, y_test, epochs=1)
+	# ====================================================================================================
+	# CREATE AND TRAIN THE NN
+	# ====================================================================================================
+	print("Defining the model...")
+	NN = define_model(X_train, vocab_size)
+	print("\n\n")
+	print("Training the model...")
+	train_model(NN, X_train, y_train, X_test, y_test, epochs=1)
 
 
 # ====================================================================================================
