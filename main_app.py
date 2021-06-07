@@ -68,7 +68,7 @@ def read_all_reviews():
 	review_data = os.listdir(DATA_PATH)
 
 	# # DEBUG - Read only a subset of reviews.
-	review_data = review_data[0:1] 
+	# review_data = review_data[0:1] 
 
 	# This is a list of review csvs that were completely empty.
 	empty_reviews = ['50100_SidMeiersCivilizationV.csv', '255710_CitiesSkylines.csv', '292030_TheWitcher3WildHunt.csv',
@@ -123,12 +123,8 @@ def remove_links_and_emails(review):
 
 	# Remove anything that is a link (usually starts with http or https)
 	# Also remove anything with the @ symbol (usually an email)
+	# Remove anything that has at least one non-ASCII character
 	review_word_list = [word for word in review_word_list if word.isascii() == True and 'http' not in word and '@' not in word and 'ð' not in word and 'Ð' not in word and '€' not in word and 'Ã' not in word and 'Ñ' not in word]
-	#review_word_list = [word for word in review_word_list for letter in word if letter in string.ascii_letters]
-
-	## Remove special characters (anything not in the ASCII table)
-	#review_word_list = [word for word in review_word_list if word.isascii() == True]
-
 
 	review = " ".join(review_word_list)
 	return review
@@ -245,6 +241,7 @@ def main():
 	# plt.ticklabel_format(useOffset=False) # Do not show offset with large numbers
 	# plt.bar(["Recommended", "Not Recommended"], [data_pos.shape[0], data_neg.shape[0]])
 	# plt.savefig("distribution.png")
+	# plt.clf()
 	# #plt.show()
 
 	# # Preprocess the data.
@@ -329,6 +326,7 @@ def main():
 	#
 	# print(X_train)
 
+	# # Code to get training distribution
 	# y_train_pos = y_train[y_train == True]
 	# y_train_neg = y_train[y_train == False]
 
@@ -363,7 +361,7 @@ def main():
 	lstm_history = train_model(NN, X_train, y_train, X_test, y_test, epochs=5)
 
 
-	# Plot the training accuracy and loss
+	# Plot the training accuracy
 	epochs = [1, 2, 3, 4, 5]
 	plt.plot(epochs, lstm_history.history['accuracy'])
 	plt.plot(epochs, bert_history.history['accuracy'])
@@ -374,9 +372,10 @@ def main():
 
 	plt.savefig("Steam_SA_training_accuracy.png")
 
-	# Clear the figure
+	# Clear the figure and generate the next one
 	plt.clf()
 
+	# Plot the training loss
 	plt.plot(epochs, lstm_history.history['loss'])
 	plt.plot(epochs, bert_history.history['loss'])
 	plt.title("Training Loss of BERT vs LSTM")
