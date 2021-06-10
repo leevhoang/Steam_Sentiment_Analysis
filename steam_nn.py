@@ -21,10 +21,7 @@ from tensorflow.keras.layers import Activation, Dropout, Flatten, Dense, Embeddi
 from tensorflow.keras.preprocessing.text import Tokenizer
 
 import numpy as np
-
-# Target size for neural network input.
-# To be adjusted later
-target_size = (1, 1)
+import matplotlib.pyplot as plt
 
 
 # Define the neural network, which will take as input a review.
@@ -36,21 +33,11 @@ def define_model(X_train, vocab_size):
 	#
 	# The final layer has a sigmoid activation function meant for storing
 	# the prediction.
+	#
+	# Based on code from this site: https://www.liip.ch/en/blog/sentiment-detection-with-keras-word-embeddings-and-lstm-deep-learning-networks
 	# =============================================================================
 	print("VOCAB SIZE {}".format(vocab_size))
 	print("\n\n\n")
-	# model = tf.keras.Sequential([
-	# 	# INPUT LAYER
-	# 	Embedding(input_dim=vocab_size, output_dim=64, input_length=100),
-	# 	# For using word embeddings. Right now, using CountVectorizer on input will cause the code to crash with the embedding layer.
-	# 	# Flatten(),
-	# 	# HIDDEN LAYERS and OTHER BLOCKS
-	# 	LSTM(15, dropout=0.5),  # LSTM layer
-
-	# 	# OUTPUT LAYER
-	# 	# Uses a sigmoid activation function because we are doing binary classification
-	# 	Dense(1, activation='sigmoid')
-	# ])
 	model = Sequential()
 	model.add(Embedding(input_dim=vocab_size, output_dim=64, input_length=100))
 	model.add(LSTM(15, dropout=0.5))
@@ -84,3 +71,8 @@ def train_model(model, X_train, y_train, X_test, y_test, epochs):
 		print("Training successful. Evaluating the model on the test set...")
 		loss, accuracy = model.evaluate(X_test, y_test)
 		print("TESTING ACCURACY: {}".format(accuracy))
+
+		# Return the history so that we can plot accuracy
+		return history
+
+

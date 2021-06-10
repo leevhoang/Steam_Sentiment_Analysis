@@ -58,7 +58,7 @@ def training_model(reviews_series, y_train, BATCH_SIZE=32):
 	reviews = reviews_series.tolist()
 	print("tokenizing...")
 	tokenized_result = [tokenize_reviews(review) for review in reviews]
-	print("merge labels...")
+	print("merging labels...")
 	reviews_with_len = [[review, y_train[i], len(review)] for i, review in enumerate(tokenized_result)]
 
 	print("sorting reviews...")
@@ -80,8 +80,13 @@ def training_model(reviews_series, y_train, BATCH_SIZE=32):
 	                        dnn_units=DNN_UNITS, model_output_classes=OUTPUT_CLASSES, dropout_rate=DROPOUT_RATE)
 
 	text_model.compile(loss="binary_crossentropy", optimizer="adam", metrics=["accuracy"])
-	print("Bert trainning progress:")
-	text_model.fit(train_data, epochs=NB_EPOCHS)
+	print("Bert training progress:")
+	history = text_model.fit(train_data, epochs=NB_EPOCHS)
+
+	# Evaluate BERT on the test set
 	print("Evaluating Bert's training result... ")
 	results = text_model.evaluate(test_data)
 	print(results)
+
+	# Return the history to plot accuracy and loss
+	return history

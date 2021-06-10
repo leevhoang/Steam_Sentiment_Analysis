@@ -3,7 +3,7 @@ Binary classifier that uses a neural network (and Vader) to predict the sentimen
 
 # Getting the dataset
 
-1) Download the Steam game reviews dataset from this link: https://www.kaggle.com/smeeeow/steam-game-reviews
+1) Download the Steam Game Reviews dataset from this link: https://www.kaggle.com/smeeeow/steam-game-reviews. You will need to create a Kaggle account to download the dataset.
 
 2) Unzip the folder game_rvw_csvs to the project directory.
 

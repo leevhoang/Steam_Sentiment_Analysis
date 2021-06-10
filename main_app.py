@@ -32,22 +32,25 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from vader import Vader
 from bert_analysis import TEXT_MODEL, training_model
 
+import enchant
+import string
+
+# UNUSED IMPORTS
+
 # Spell checker
-from autocorrect import Speller #correcting the spellings 
+# from autocorrect import Speller #correcting the spellings 
 # from langdetect import detect
 
 # # Enforce consistent results from langdetect
 # from langdetect import DetectorFactory
 # DetectorFactory.seed = 0
 
-#from textblob import TextBlob
-import enchant
+# from textblob import TextBlob
+
 
 
 # Path to all CSVs
 DATA_PATH = 'game_rvw_csvs'
-
-
 
 
 # ====================================================================================================
@@ -65,11 +68,8 @@ def read_all_reviews():
 	review_data = os.listdir(DATA_PATH)
 
 	# # DEBUG - Read only a subset of reviews.
-	# For Tensorflow 2, reading all reviews leads to an error, but reading a subset will not cause errors.
-	# Turns out six CSVs in the dataset are completely empty - nothing but column headers are present
-	#review_data = review_data[0:2] # This will not crash
-	# review_data = review_data[0:21] # On TF2, this line will crash the code because it will read an empty CSV
-	# print("Number of review sets to read: {}".format(len(review_data)))
+	# # Uncomment this line to test the code before running full-scale experiments.
+	# review_data = review_data[0:1] 
 
 	# This is a list of review csvs that were completely empty.
 	empty_reviews = ['50100_SidMeiersCivilizationV.csv', '255710_CitiesSkylines.csv', '292030_TheWitcher3WildHunt.csv',
@@ -123,7 +123,9 @@ def remove_links_and_emails(review):
 	review_word_list = review.split()
 
 	# Remove anything that is a link (usually starts with http or https)
-	review_word_list = [word for word in review_word_list if 'http' not in word and 'ð' not in word]
+	# Also remove anything with the @ symbol (usually an email)
+	# Remove anything that has at least one non-ASCII character
+	review_word_list = [word for word in review_word_list if word.isascii() == True and 'http' not in word and '@' not in word and 'ð' not in word and 'Ð' not in word and '€' not in word and 'Ã' not in word and 'Ñ' not in word]
 
 	review = " ".join(review_word_list)
 	return review
@@ -131,9 +133,11 @@ def remove_links_and_emails(review):
 
 # Check each sentence for mispellings
 # enc is a pyenchant object
+# NOT USED - 
 def correct_spelling(enc, review):
 	review_word_list = review.split()
 	review_word_list = [enc.check(word) for word in review_word_list if enc.check(word) == False]
+
 	# Loop through review word list and count the number of mispellings
 	# If it is greater than five, list it here
 	return len(review_word_list)
@@ -170,8 +174,9 @@ def preprocess_reviews(all_reviews):
 	print("Removing punctuation...")
 	all_reviews['review'] = all_reviews['review'].apply(lambda review: remove_punctuation(review))
 
-	#print("Correct spelling errors...")
-	#all_reviews['review'] = all_reviews['review'].apply(lambda review: correct_spelling(review))
+	# # Unused code for correcting spelling errors
+	# print("Correct spelling errors...")
+	# all_reviews['review'] = all_reviews['review'].apply(lambda review: correct_spelling(review))
 
 
 	# Remove special characters and links
@@ -203,8 +208,8 @@ def run_model(X_train, X_test):
 	vectorizer = Tokenizer(lower=True)  # Alternative tokenizer for working with the embedding layer
 	vectorizer.fit_on_texts(X_train)
 
-	X_train = vectorizer.texts_to_sequences(X_train)  #
-	X_test = vectorizer.texts_to_sequences(X_test)  #
+	X_train = vectorizer.texts_to_sequences(X_train)  # Convert the training data to vectors.
+	X_test = vectorizer.texts_to_sequences(X_test)  # Convert the test data to vectors.
 	vocab_size = len(
 		vectorizer.word_index) + 1  # Comes from the length of the vectorizer's word index. Required for flattening
 
@@ -219,15 +224,10 @@ def main():
 	vader = Vader()
 
 	# Define the autocorrecter
-	spell = Speller('en')
 	d = enchant.Dict("en_US")
+
 	# For production - Read all reviews in the directory
 	all_reviews = read_all_reviews()
-
-	# # DEBUG - read just one set of reviews - Counterstrike
-	# # This is to ensure that we can finetune the input before passing it into the model
-	# all_reviews = pd.read_csv(DATA_PATH + "/" + "10_CounterStrike.csv")
-	# all_reviews = pd.read_csv(DATA_PATH + "/" + "1145360_Hades.csv")
 
 	print("Number of reviews: {}".format(all_reviews.shape[0]))
 	print("Finished reading data.\n\n")
@@ -236,30 +236,32 @@ def main():
 	data_pos = all_reviews[all_reviews['voted_up'] == True]
 	data_neg = all_reviews[all_reviews['voted_up'] == False]
 
-	# Get a distribution of the data by label
-	plt.title("Label distribution")
-	plt.xlabel("Label")
-	plt.ylabel("Number of reviews (millions)")
-	plt.ticklabel_format(useOffset=False) # Do not show offset with large numbers
-	plt.bar(["Recommended", "Not Recommended"], [data_pos.shape[0], data_neg.shape[0]])
-	plt.savefig("distribution.png")
-	#plt.show()
+	# # Get a distribution of the data by label
+	# plt.title("Label distribution")
+	# plt.xlabel("Label")
+	# plt.ylabel("Number of reviews (millions)")
+	# plt.ticklabel_format(useOffset=False) # Do not show offset with large numbers
+	# plt.bar(["Recommended", "Not Recommended"], [data_pos.shape[0], data_neg.shape[0]])
+	# plt.savefig("distribution.png")
+	# plt.clf()
+	# #plt.show()
 
 	# # Preprocess the data.
-	# # - Remove all non-English reviews (reviews where the value in the language column is not English)
-	# # NOTE: Some reviews are marked as "english" but have non-English text in them.
-	# # - Remove all reviews where the review is blank or NaN
-	# # - Make all reviews lowercase
-	# print("Preprocessing reviews")
-	# all_reviews = preprocess_reviews(all_reviews)
-	# print(all_reviews['review'].head())
-	# print(all_reviews.shape[0])
+	# - Remove all non-English reviews (reviews where the value in the language column is not English)
+	# NOTE: Some reviews are marked as "english" but have non-English text in them.
+	# - Remove all reviews where the review is blank or NaN
+	# - Make all reviews lowercase
+	print("Preprocessing reviews")
+	all_reviews = preprocess_reviews(all_reviews)
+	print(all_reviews['review'].head())
+	print(all_reviews.shape[0])
 
 
-	# # Separate the reviews and labels from other data
-	# # Include the requested features
-	# data = all_reviews[['review', 'voted_up']]
+	# Separate the reviews and labels from other data
+	# Include the requested features
+	data = all_reviews[['review', 'voted_up']]
 
+	# # UNUSED CODE
 	# # Detect language and remove all reviews where the result is not 'en' (English)
 	# data['spelling'] = data['review'].apply(lambda review: correct_spelling(d, review))
 	# print(data.head(20))
@@ -270,9 +272,9 @@ def main():
 	# data = data[data['spelling'] < 5]
 	# print(data.shape[0])
 
-	# # Separate the dataset into positive and negative reviews.
-	# data_pos = data[data['voted_up'] == True]
-	# data_neg = data[data['voted_up'] == False]
+	# Separate the dataset into positive and negative reviews.
+	data_pos = data[data['voted_up'] == True]
+	data_neg = data[data['voted_up'] == False]
 
 	# # print("Distribution of positive and negative reviews. First number is positive, second number is negative")
 	# # print(data_pos.shape[0] / data.shape[0]) # About 87.5% "recommended"
@@ -280,55 +282,61 @@ def main():
 	# # print(data_pos.shape[0]) # About 4 million
 	# # print(data_neg.shape[0]) # About 570 K
 
-	# print("\nSplitting dataset into training and testing")
+	print("\nSplitting dataset into training and testing")
 
-	# # Cut out a lot of positive reviews as the dataset is imbalanced: 4 million reviews are positive, but 570 thousand are negative.
-	# # Goal: Get about 1 million reviews total with 570 K for training and 570 K for testing.
-	# data_pos = data_pos.iloc[0:570914, :]  # For all reviews
-	# # data_pos = data_pos.iloc[0:]
-	# data = data_pos.append(data_neg, ignore_index=True)  # Rejoin the negative reviews with the modified positive reviews set.
+	# Cut out a lot of positive reviews as the dataset is imbalanced: 4 million reviews are positive, but 570 thousand are negative.
+	# Goal: Get about 1 million reviews total with 570 K for training and 570 K for testing.
+	data_pos = data_pos.iloc[0:570914, :]  # For all reviews
+	data = data_pos.append(data_neg, ignore_index=True)  # Rejoin the negative reviews with the modified positive reviews set.
 
-	# # Split the data into the training and test sets.
-	# # We aim for 400 K reviews (balanced and combined) out of 4.6 million
-	# # X = data[['review', 'author.num_games_owned']]
-	# X = data['review']
-	# y = data['voted_up']
-	# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=23, stratify=y)
+	# Split the data into the training and test sets.
+	# We aim for 400 K reviews (balanced and combined) out of 4.6 million
+	X = data['review']
+	y = data['voted_up']
+	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=23, stratify=y)
 
-	# print("trainning with bert")
-	# temp = []
-	# for i in y_train:
-	# 	if i == True:
-	# 		temp.append(int(1))
-	# 	else:
-	# 		temp.append(int(0))
-	# training_model(X_train, temp)
-	# print("tranning done")
+	# ====================================================================================================
+	# BERT TRAINING CODE
+	# ====================================================================================================
+
+	print("Training with bert")
+	temp = []
+	for i in y_train:
+		if i == True:
+			temp.append(int(1))
+		else:
+			temp.append(int(0))
+	bert_history = training_model(X_train, temp)
+	print("Training done")
 
 
+	# Using vader sentiment analysis to get results
 
+	# from nltk.sentiment.vader import SentimentIntensityAnalyzer
+	# analyzer = SentimentIntensityAnalyzer()
+	# print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
+	# print(analyzer.polarity_scores("fps wasn't part of our deal."))
 
+	# ====================================================================================================
+	# VADER ANALYSIS
+	# ====================================================================================================
 
-	# # Using vader sentiment analysis to get results
+	print(type(y_train))
+	print("Vader sentiment analysis in progress...")
+	vader.vader_analysis(X_train)
+	vader_results = vader.vader_validation(y_train)
 
-	# # from nltk.sentiment.vader import SentimentIntensityAnalyzer
-	# # analyzer = SentimentIntensityAnalyzer()
-	# # print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
-	# # print(analyzer.polarity_scores("fps wasn't part of our deal."))
+	# vader_df = pd.DataFrame(vader_results.tolist())  # Convert the list of Vader results into a dataframe.
+	print("===========================================================")
+	print("Vader prediction accuracy: ", str(round(vader_results * 100, 2)) + "%")
+	print("===========================================================")
 
-	# # print(type(y_train))
-	# # print("Vader sentiment analysis in progress...")
-	# # vader.vader_analysis(X_train)
-	# # vader_results = vader.vader_validation(y_train)
-	# # # vader_df = pd.DataFrame(vader_results.tolist())  # Convert the list of Vader results into a dataframe.
-	# # print("===========================================================")
-	# # print("Vader prediction accuracy: ", str(round(vader_results * 100, 2)) + "%")
-	# # print("===========================================================")
-	# # # # print(vader_results.tolist())
-	# # # print(vader_df)
-	# # #
-	# # # print(X_train)
+	# # print(vader_results.tolist())
+	# print(vader_df)
+	#
+	# print(X_train)
 
+	# # Code to get training distribution
 	# y_train_pos = y_train[y_train == True]
 	# y_train_neg = y_train[y_train == False]
 
@@ -341,26 +349,51 @@ def main():
 	# print("\ny_test distribution")
 	# print(y_test_pos.shape[0])  # About 2 million
 	# print(y_test_neg.shape[0])  # About 285 K
-	# # ====================================================================================================
-	# # VECTORIZE THE REVIEWS
-	# # ====================================================================================================
+	# ====================================================================================================
+	# VECTORIZE THE REVIEWS
+	# ====================================================================================================
 
-	# try:
-	# 	X_train, X_test, vocab_size = run_model(X_train, X_test)
-	# except:
-	# 	exit("Unable to fit vectorizer to training data. Closing program.")
-	# else:
-	# 	print("Successfully fit vectorizer to training data.")
-	# 	print("\n")
+	try:
+		X_train, X_test, vocab_size = run_model(X_train, X_test)
+	except:
+		exit("Unable to fit vectorizer to training data. Closing program.")
+	else:
+		print("Successfully fit vectorizer to training data.")
+		print("\n")
 
-	# # ====================================================================================================
-	# # CREATE AND TRAIN THE NN
-	# # ====================================================================================================
-	# print("Defining the model...")
-	# NN = define_model(X_train, vocab_size)
-	# print("\n\n")
-	# print("Training the model...")
-	# train_model(NN, X_train, y_train, X_test, y_test, epochs=1)
+	# ====================================================================================================
+	# CREATE AND TRAIN THE NN
+	# ====================================================================================================
+	print("Defining the model...")
+	NN = define_model(X_train, vocab_size)
+	print("\n\n")
+	print("Training the model...")
+	lstm_history = train_model(NN, X_train, y_train, X_test, y_test, epochs=5)
+
+
+	# Plot the training accuracy
+	epochs = [1, 2, 3, 4, 5]
+	plt.plot(epochs, lstm_history.history['accuracy'])
+	plt.plot(epochs, bert_history.history['accuracy'])
+	plt.title("Training Accuracy of BERT vs LSTM")
+	plt.xlabel("Epoch")
+	plt.ylabel("Training accuracy")
+	plt.legend(['LSTM', 'BERT'], loc='upper left')
+
+	plt.savefig("Steam_SA_training_accuracy.png")
+
+	# Clear the figure and generate the next one
+	plt.clf()
+
+	# Plot the training loss
+	plt.plot(epochs, lstm_history.history['loss'])
+	plt.plot(epochs, bert_history.history['loss'])
+	plt.title("Training Loss of BERT vs LSTM")
+	plt.xlabel("Epoch")
+	plt.ylabel("Loss")
+	plt.legend(['LSTM', 'BERT'], loc='upper left')
+
+	plt.savefig("Steam_SA_training_loss.png")
 
 
 # ====================================================================================================
