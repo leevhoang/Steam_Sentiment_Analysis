@@ -68,6 +68,7 @@ def read_all_reviews():
 	review_data = os.listdir(DATA_PATH)
 
 	# # DEBUG - Read only a subset of reviews.
+	# # Uncomment this line to test the code before running full-scale experiments.
 	# review_data = review_data[0:1] 
 
 	# This is a list of review csvs that were completely empty.
@@ -173,8 +174,9 @@ def preprocess_reviews(all_reviews):
 	print("Removing punctuation...")
 	all_reviews['review'] = all_reviews['review'].apply(lambda review: remove_punctuation(review))
 
-	#print("Correct spelling errors...")
-	#all_reviews['review'] = all_reviews['review'].apply(lambda review: correct_spelling(review))
+	# # Unused code for correcting spelling errors
+	# print("Correct spelling errors...")
+	# all_reviews['review'] = all_reviews['review'].apply(lambda review: correct_spelling(review))
 
 
 	# Remove special characters and links
@@ -206,8 +208,8 @@ def run_model(X_train, X_test):
 	vectorizer = Tokenizer(lower=True)  # Alternative tokenizer for working with the embedding layer
 	vectorizer.fit_on_texts(X_train)
 
-	X_train = vectorizer.texts_to_sequences(X_train)  #
-	X_test = vectorizer.texts_to_sequences(X_test)  #
+	X_train = vectorizer.texts_to_sequences(X_train)  # Convert the training data to vectors.
+	X_test = vectorizer.texts_to_sequences(X_test)  # Convert the test data to vectors.
 	vocab_size = len(
 		vectorizer.word_index) + 1  # Comes from the length of the vectorizer's word index. Required for flattening
 
@@ -293,6 +295,10 @@ def main():
 	y = data['voted_up']
 	X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.5, random_state=23, stratify=y)
 
+	# ====================================================================================================
+	# BERT TRAINING CODE
+	# ====================================================================================================
+
 	print("Training with bert")
 	temp = []
 	for i in y_train:
@@ -310,6 +316,10 @@ def main():
 	# analyzer = SentimentIntensityAnalyzer()
 	# print(analyzer.polarity_scores("story is great but graphic looks like mafia 2 classic"))
 	# print(analyzer.polarity_scores("fps wasn't part of our deal."))
+
+	# ====================================================================================================
+	# VADER ANALYSIS
+	# ====================================================================================================
 
 	print(type(y_train))
 	print("Vader sentiment analysis in progress...")
